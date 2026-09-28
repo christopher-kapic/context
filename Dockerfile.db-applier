@@ -21,7 +21,7 @@
 # committed lockfile. Bump versions in packages/db-applier/package.json (or the
 # pnpm catalog) and run `pnpm install`, never by editing a version in this file.
 
-FROM node:24-slim AS base
+FROM node:26-slim AS base
 
 # postgresql-client-${PG_MAJOR} (pg_dump / pg_restore / psql) comes from the
 # upstream PostgreSQL apt repository (PGDG), pinned to PG_MAJOR, not from Debian's
