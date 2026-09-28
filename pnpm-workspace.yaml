@@ -175,7 +175,7 @@ catalog:
   vitest: ^4.1.11
   vitest-mock-extended: ^5.1.1
   rate-limiter-flexible: ^11.2.0
-  nodemailer: ^9.1.0
+  nodemailer: ^10.0.10
   "@types/nodemailer": ^8.0.1
   bullmq: ^6.1.2
   ioredis: ^6.0.0
