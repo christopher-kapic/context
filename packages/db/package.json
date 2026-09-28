@@ -1,0 +1,38 @@
+{
+  "name": "@starter/db",
+  "license": "UNLICENSED",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts"
+    },
+    "./seed": {
+      "default": "./prisma/seed.ts"
+    }
+  },
+  "scripts": {
+    "db:push": "bash ../../scripts/assert-local-database.sh db:push && prisma db push",
+    "db:push:dangerous": "bash ../../scripts/db-push-dangerous-local.sh",
+    "db:seed": "bash ../../scripts/assert-local-database.sh db:seed && prisma db seed",
+    "db:generate": "prisma generate",
+    "db:validate": "prisma validate && prisma format && prisma format --check",
+    "check-types": "tsc --noEmit",
+    "postinstall": "prisma generate",
+    "db:studio": "bash ../../scripts/assert-local-database.sh db:studio && prisma studio"
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "^7.9.1",
+    "@prisma/client": "catalog:",
+    "@starter/env": "workspace:*",
+    "dotenv": "catalog:",
+    "pg": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@starter/config": "workspace:*",
+    "prisma": "catalog:",
+    "tsx": "catalog:",
+    "typescript": "catalog:"
+  }
+}

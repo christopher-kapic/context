@@ -1,0 +1,227 @@
+packages:
+  - apps/*
+  - packages/*
+minimumReleaseAge: 10080
+minimumReleaseAgeStrict: true
+minimumReleaseAgeIgnoreMissingTime: false
+# Excludes for packages that fail the 7-day minimum-age check on re-resolution.
+# All previous entries (devalue, react-doctor, oxlint + bindings, i18next) were
+# audited on 2026-05-27, and the brace-expansion carve-out for GHSA-mh99-v99m-4gvg
+# aged out on 2026-07-30; every locked version is now ≥7 days old, so there are no
+# live carve-outs and the key is absent. Add it back (with the publish date) if a
+# future re-resolution flags a package as too young.
+# Security-fix carve-outs only — see patterns/dependency-vulnerabilities.md.
+# Each entry MUST carry a `drop-after: YYYY-MM-DD` marker in its comment. That
+# date is enforced by `pnpm deps:check-excludes` (CI lint job) — once it passes,
+# the build fails until the entry is deleted. Without it a carve-out taken for a
+# one-week security window quietly becomes a permanent exemption from the gate.
+# Restore as a block sequence, never flow style — the checker only parses blocks:
+#   minimumReleaseAgeExclude:
+#     # GHSA-xxxx-yyyy-zzzz: <pkg> <version> (released YYYY-MM-DD) is the only
+#     # version that clears the advisory and is <7 days old.
+#     # drop-after: YYYY-MM-DD
+#     - <pkg>
+minimumReleaseAgeExclude:
+  # New-package carve-out (not a security fix, user-approved): @shadcn/lint
+  # 0.1.1 (released 2026-09-17 16:53 UTC) is the design-system lint plugin
+  # registered in .oxlintrc.json. No version older than the 7-day window exists
+  # (0.1.0: 2026-09-14, 0.1.1: 2026-09-17), so the gate has nothing to resolve
+  # to. Dated a day past the 7-day mark so removal can't race the publish
+  # timestamp mid-day.
+  # drop-after: 2026-09-25
+  - "@shadcn/lint"
+# Each selector lifts a transitive out of its vulnerable range. All target
+# versions pass the 7-day minimumReleaseAge gate; selectors are scoped tight so
+# unrelated majors are untouched.
+overrides:
+  hono@<4.12.25: ">=4.12.25" # CVE-2026-54290 (CORS credential origin reflection)
+  picomatch@>=4 <4.0.4: ">=4.0.4" # CVE-2026-33671 (ReDoS via extglob)
+  defu@<6.1.5: ">=6.1.5" # CVE-2026-35209 (prototype pollution)
+  # GHSA-4c8g-83qw-93j6 (>=3.1.3), GHSA-v2hh-gcrm-f6hx (>=3.1.4), and
+  # GHSA-7p8r-x3mc-p8w7 (>=3.1.5) superseded the earlier CVE pins. Scoped to the v3 line only
+  # (v2 and v4 were never in the vulnerable range and v4 is a breaking major).
+  # Reached via ajv (prisma, react-doctor>conf).
+  fast-uri@>=3 <3.1.6: ">=3.1.6 <4"
+  undici@>=7 <7.29.0: ">=7.29.0 <8" # GHSA-4cwx-7wf7-3272 (cache disclosure)
+  ip-address@>=10 <10.3.1: ">=10.3.1 <11" # GHSA-mwp4-54f8-5fhr (SSRF)
+  # GHSA-52cp-r559-cp3m (prototype pollution) and GHSA-5p4m-2wfm-xmqj
+  # (quadratic CPU) in the schema loader. Scoped to the v4 line; v3 and v5 consumers are untouched. Reached via
+  # @expo/cli>@expo/xcpretty and @tanstack/start-plugin-core>xmlbuilder2.
+  js-yaml@>=4 <4.3.2: ">=4.3.2 <5"
+  # GHSA-r28c-9q8g-f849 — patched in 8.5.18. Most flagged paths are transitive
+  # (vite, vitest, @expo/metro-config) and a catalog bump would not re-resolve
+  # them; this override does. The catalog's own ^8.5.16 was separately re-resolved
+  # to 8.5.19 in the lockfile (overrides do not apply to `catalog:` specifiers).
+  postcss@<8.5.18: ">=8.5.18"
+  # brace-expansion DoS: GHSA-3jxr-9vmj-r5cp + GHSA-mh99-v99m-4gvg, both only
+  # patched on the v5 line (>=5.0.9). Scoped to
+  # >=3 so no v2 consumer is force-upgraded: brace-expansion v5's CJS build
+  # exports { expand } instead of a callable default, which a v2 consumer cannot
+  # call. Reached via react-doctor>eslint and expo>@expo/cli>glob>minimatch.
+  #
+  # As of the `filelist>minimatch` override below there is no minimatch v5 left
+  # in the tree, so this scoping currently protects nobody — it is kept because
+  # dropping it would force any FUTURE v2 consumer a dependency bump drags in
+  # onto an incompatible v5, and a range is cheaper than rediscovering that.
+  brace-expansion@>=3 <5.0.9: ">=5.0.9"
+  # The last v2 consumer of brace-expansion was
+  # vite-plugin-pwa>workbox-build>...>ejs>jake>filelist>minimatch@5, and the v2
+  # line has no fix for GHSA-mh99-v99m-4gvg (2.1.2 is its final release, still in
+  # the advisory's <=5.0.7 range). filelist only calls `minimatch.match`, which
+  # minimatch 10 still exports from its CommonJS build, so lifting that one
+  # consumer to v10 removes the vulnerable v2 copy instead of suppressing it.
+  "filelist>minimatch": ^10.2.5
+  # CVE-2026-44635 (JSON-path injection) is patched in 0.28.17. Pinned EXACT
+  # (not just `>=0.28.17`) to keep a single kysely in the tree: better-auth 1.7.1
+  # peers `kysely ^0.28.17 || ^0.29.0`, and two copies of @better-auth/core split
+  # its types so a plugin stops being assignable to BetterAuthPlugin.
+  # kysely is only used transitively via better-auth here.
+  kysely: 0.28.17
+  path-to-regexp@>=8 <8.4.0: ">=8.4.0" # CVE-2026-4926 (ReDoS)
+  # Peer-range alignment after 2026-06 dependency refresh. These are scoped to
+  # the packages that declare the peers and all target releases are older than
+  # the 7-day minimumReleaseAge gate.
+  # Expo 57.0.15 declares @expo/dom-webview ~57.0.1 and @expo/log-box ^57.0.3.
+  # Peer-injected instances do not honor scoped selectors, hence these exact
+  # package-level overrides. log-box 57.0.4 is <7 days old; pin the last mature.
+  "@expo/dom-webview": 57.0.1
+  "@expo/log-box": 57.0.3
+  "vite-plugin-pwa@1.3.0>workbox-build": 7.4.1
+  # workbox-build transitives — vite-plugin-pwa 1.3.0 → workbox-build 7.4.1 is
+  # the latest upstream release and still pulls in vulnerable versions. Drop
+  # these overrides if workbox-build patches the chain.
+  serialize-javascript@<7.0.3: ">=7.0.3" # GHSA-5c6j-r48x-rmvq (RCE via RegExp.flags)
+  lodash@<4.18.0: ">=4.18.0" # GHSA-r5fr-rjxr-66jc (code injection via _.template)
+  "@babel/plugin-transform-modules-systemjs@<7.29.4": ">=7.29.4 <7.29.7" # GHSA-fv7c-fp4j-7gwp (cap excludes too-young 7.29.7)
+  # @vite-pwa/assets-generator pulls its own sharp 0.33.5, which is vulnerable to
+  # GHSA-f88m-g3jw-g9cj (fixed in 0.35.0). Scoped to that one consumer — the app's
+  # own sharp comes from the catalog (^0.35.3) and is already clear.
+  "@vite-pwa/assets-generator>sharp": ^0.35.4
+  "sharp-ico>sharp": ^0.35.4 # GHSA-g89c-p67h-r497 (libheif) — vite-pwa icon generator chain
+  nanoid@>=3 <3.3.18: ">=3.3.18 <4" # GHSA-2v37-7h3g-55p8 (DoS)
+  deepmerge-ts@>=7 <8: ">=8.0.0 <9" # GHSA-ggr8-5vv4-36mx (stack exhaustion)
+  mysql2@<3.22.0: ">=3.22.0" # GHSA-3f6p-5ww8-9rcr (auth plugin downgrade)
+  "@xmldom/xmldom@<0.9.12": ">=0.9.12" # GHSA-2883-xcg3-v3hh (entity expansion DoS)
+blockExoticSubdeps: true
+dangerouslyAllowAllBuilds: false
+savePrefix: ""
+# Moved here from the package.json "pnpm" field, which pnpm 11 no longer reads.
+peerDependencyRules:
+  allowedVersions:
+    vite: "*"
+allowBuilds:
+  # Its postinstall is `node scripts/check-types.js || true` — a best-effort
+  # diagnostic that always exits 0 and produces nothing the runtime needs. Denied
+  # rather than allowed: skipping it costs nothing and keeps a third-party install
+  # script from running. Listed explicitly (not omitted) because an *undecided*
+  # package is what makes pnpm fail every `pnpm <script>` with ERR_PNPM_IGNORED_BUILDS.
+  '@openrouter/sdk': false
+  # tree-sitter-bash ships prebuilt tree-sitter-bash.wasm; the native binding is not needed.
+  tree-sitter-bash: false
+  '@prisma/engines': true
+  esbuild: true
+  lefthook: true
+  msgpackr-extract: true
+  msw: true
+  prisma: true
+  sharp: true
+# Catalog: single-version deps shared across workspace packages.
+# Bump versions HERE, not in individual package.json files. See patterns/dependencies.md.
+catalog:
+  pg: ^8.23.0
+  "@babel/parser": 7.29.8
+  dotenv: ^17.4.2
+  zod: ^4.4.3
+  "@types/node": ^26.2.0
+  hono: ^4.13.3
+  "@orpc/server": ^1.15.0
+  "@orpc/openapi": ^1.15.0
+  "@orpc/zod": ^1.15.0
+  better-auth: 1.7.1
+  lucide-react: ^1.33.0
+  next-themes: ^0.4.6
+  # Web/UI React. `apps/native` deliberately does NOT use `catalog:` for react
+  # and react-dom — it pins the exact version Expo SDK 57 bundles (19.2.3, see
+  # expo/bundledNativeModules.json). That pin looks like catalog drift and has
+  # been "corrected" to `catalog:` by mistake; it is SDK alignment, and the two
+  # versions are expected to differ until an SDK bump moves the native one.
+  react: ^19.2.8
+  react-dom: ^19.2.8
+  sileo: ^0.1.5
+  "@prisma/client": ^7.9.1
+  # Keep the Prisma CLI in lockstep with @prisma/client above — they must match.
+  # Consumed by packages/db and packages/db-applier via `catalog:`.
+  prisma: ^7.9.1
+  "@orpc/client": ^1.15.0
+  "@orpc/tanstack-query": ^1.15.0
+  "@types/react": ^19.2.18
+  "@types/react-dom": ^19.2.4
+  tailwindcss: ^4.3.3
+  typescript: ^7.0.2
+  vite: ^8.2.2
+  "@vitejs/plugin-react": ^6.1.0
+  postcss: ^8.5.26
+  "@tanstack/ai": 0.47.2
+  "@tanstack/ai-openai": 0.21.0
+  "@tanstack/ai-openrouter": 0.18.1
+  "@tanstack/react-form": ^1.33.5
+  "@tanstack/react-query": ^5.101.4
+  "@tanstack/react-query-devtools": ^5.101.4
+  "@tanstack/react-router": ^1.170.31
+  "@tanstack/react-router-devtools": ^1.167.1
+  "@tanstack/react-router-ssr-query": ^1.167.1
+  "@tanstack/react-start": ^1.168.48
+  tsx: ^4.23.12
+  vitest: ^4.1.11
+  vitest-mock-extended: ^5.1.1
+  rate-limiter-flexible: ^11.2.0
+  nodemailer: ^9.1.0
+  "@types/nodemailer": ^8.0.1
+  bullmq: ^6.1.2
+  ioredis: ^6.0.0
+  tsdown: ^0.22.14
+  sharp: ^0.35.4
+  blurhash: ^2.0.5
+  "@aws-sdk/client-s3": ^3.1115.0
+  "@aws-sdk/s3-request-presigner": ^3.1115.0
+  react-markdown: ^10.1.0
+  i18next: ^26.4.0
+  react-i18next: ^17.0.12
+  i18next-browser-languagedetector: ^8.2.1
+  openai: ^7.5.0
+  "@anthropic-ai/sdk": ^0.120.0
+  # Pinned to the exact version resolved transitively via @tanstack/ai-openrouter,
+  # now a direct dep of @starter/agent-runtime so it can inject Anthropic prompt-cache
+  # breakpoints via the SDK's HTTPClient beforeRequest hook. See adapters.ts.
+  "@openrouter/sdk": 0.13.20
+  "heic-to": ^1.5.2
+  "qrcode.react": ^4.2.0
+  "@fontsource-variable/roboto": ^5.3.0
+  "@better-auth/expo": 1.7.1
+  "@expo/metro-runtime": ~57.0.12
+  "@expo/vector-icons": ^15.1.1
+  "@gorhom/bottom-sheet": ^5.2.14
+  "expo": ~57.0.21
+  "expo-constants": ~57.0.13
+  "expo-font": ~57.0.1
+  "expo-haptics": ~57.0.1
+  "expo-linking": ~57.0.7
+  "expo-localization": ~57.0.1
+  "expo-network": ~57.0.1
+  "expo-router": ~57.0.15
+  "expo-secure-store": ~57.0.1
+  "expo-status-bar": ~57.0.1
+  "expo-web-browser": ~57.0.2
+  "heroui-native": ^1.0.8
+  "react-native": 0.86.2
+  "react-native-gesture-handler": ~2.32.0
+  "react-native-keyboard-controller": 1.21.9
+  "react-native-reanimated": 4.5.1
+  "react-native-safe-area-context": ~5.7.0
+  "react-native-screens": ~4.26.0
+  "react-native-svg": 15.15.4
+  "react-native-web": ~0.21.2
+  "react-native-worklets": 0.10.1
+  "tailwind-merge": ^3.6.0
+  "tailwind-variants": ^3.3.1
+  "uniwind": ^1.11.0

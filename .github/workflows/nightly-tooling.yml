@@ -1,0 +1,71 @@
+# Nightly self-tests for the template's own tooling: the checkers, hooks, and
+# scripts that guard this repo, rather than the repo's product code. These
+# verify the guards themselves still catch what they claim to catch.
+#
+# This workflow is the ONLY per-interval home for the tooling self-tests:
+# PR checks run the enforcement legs (the checkers themselves) but not their
+# self-tests, so a checker that breaks through an indirect dependency bump
+# (node, tsx, glob semantics) is surfaced here within a day even on a quiet
+# default branch. `pnpm verify` at release time runs them once more before
+# anything ships. The exception is `template:remove:test`, which runs only
+# here and in `release.yml`: it regenerates a pruned workspace's lockfile
+# with `pnpm install --offline`, so it needs the pnpm metadata mirror a full
+# install populates.
+#
+# `pnpm verify:tooling` is exactly the set of steps that were split out of
+# `pnpm verify` when it was split into the fast pre-handoff gate
+# (`pnpm verify:fast`) and the full CI/release gate (`pnpm verify`).
+name: Nightly tooling self-tests
+
+on:
+  schedule:
+    # 03:30 UTC — quiet hour, off the top of the hour to dodge cron congestion.
+    - cron: "30 3 * * *"
+  # Manual trigger for testing the workflow or re-running a failure outside the
+  # schedule.
+  workflow_dispatch:
+
+# Least-privilege token: the self-tests only read the repo.
+permissions:
+  contents: read
+
+# One nightly run at a time; a superseded scheduled run is cancelled.
+concurrency:
+  group: nightly-tooling
+  cancel-in-progress: true
+
+jobs:
+  tooling-self-tests:
+    name: Tooling self-tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # Template-maintainer job. Once a derived app completes onboarding
+    # (getting-started Phase 2 creates ./notes/), these self-tests no longer
+    # describe that repo and would burn CI minutes forever — skip them
+    # automatically. hashFiles() is empty when notes/ has no files, i.e. this
+    # repository or a not-yet-onboarded copy, which is exactly when the job
+    # should run. Manual dispatch always runs (maintainers may have notes/
+    # locally in a scratch clone). Belt-and-braces: Phase 7 of getting-started
+    # tells the app's agent it may delete this file outright.
+    if: hashFiles('notes/**') == '' || github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320  # v5
+
+      - name: Set up Node
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e  # v6
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Everything below is offline and DB/Redis-free: policy-checker fixture
+      # runs, the Claude hook deny-rule suite, the trufflehog filter's stubbed
+      # CLI tests, and the Dokploy config / template-removal test bundles.
+      - name: Run tooling self-tests
+        run: pnpm verify:tooling
