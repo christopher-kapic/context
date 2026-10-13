@@ -128,17 +128,17 @@ allowBuilds:
 # Catalog: single-version deps shared across workspace packages.
 # Bump versions HERE, not in individual package.json files. See patterns/dependencies.md.
 catalog:
-  pg: ^8.23.0
+  pg: ^8.23.1
   "@babel/parser": 7.29.8
   dotenv: ^17.4.2
-  zod: ^4.4.3
-  "@types/node": ^26.2.0
-  hono: ^4.13.3
-  "@orpc/server": ^1.15.0
-  "@orpc/openapi": ^1.15.0
-  "@orpc/zod": ^1.15.0
-  better-auth: 1.7.1
-  lucide-react: ^1.33.0
+  zod: ^4.6.5
+  "@types/node": ^26.6.4
+  hono: ^4.13.13
+  "@orpc/server": ^1.15.4
+  "@orpc/openapi": ^1.15.4
+  "@orpc/zod": ^1.15.4
+  better-auth: 1.7.7
+  lucide-react: ^1.52.0
   next-themes: ^0.4.6
   # Web/UI React. `apps/native` deliberately does NOT use `catalog:` for react
   # and react-dom — it pins the exact version Expo SDK 57 bundles (19.2.3, see
@@ -148,56 +148,56 @@ catalog:
   react: ^19.2.8
   react-dom: ^19.2.8
   sileo: ^0.1.5
-  "@prisma/client": ^7.9.1
+  "@prisma/client": ^7.10.0
   # Keep the Prisma CLI in lockstep with @prisma/client above — they must match.
   # Consumed by packages/db and packages/db-applier via `catalog:`.
-  prisma: ^7.9.1
-  "@orpc/client": ^1.15.0
-  "@orpc/tanstack-query": ^1.15.0
-  "@types/react": ^19.2.18
-  "@types/react-dom": ^19.2.4
+  prisma: ^7.10.0
+  "@orpc/client": ^1.15.4
+  "@orpc/tanstack-query": ^1.15.4
+  "@types/react": ^19.3.0
+  "@types/react-dom": ^19.3.0
   tailwindcss: ^4.3.3
   typescript: ^7.0.2
-  vite: ^8.2.2
-  "@vitejs/plugin-react": ^6.1.0
-  postcss: ^8.5.26
-  "@tanstack/ai": 0.47.2
-  "@tanstack/ai-openai": 0.21.0
-  "@tanstack/ai-openrouter": 0.18.1
+  vite: ^8.3.2
+  "@vitejs/plugin-react": ^6.1.2
+  postcss: ^8.5.29
+  "@tanstack/ai": 0.64.1
+  "@tanstack/ai-openai": 0.26.0
+  "@tanstack/ai-openrouter": 0.20.3
   "@tanstack/react-form": ^1.33.5
-  "@tanstack/react-query": ^5.101.4
-  "@tanstack/react-query-devtools": ^5.101.4
-  "@tanstack/react-router": ^1.170.31
-  "@tanstack/react-router-devtools": ^1.167.1
-  "@tanstack/react-router-ssr-query": ^1.167.1
-  "@tanstack/react-start": ^1.168.48
-  tsx: ^4.23.12
+  "@tanstack/react-query": ^5.104.1
+  "@tanstack/react-query-devtools": ^5.104.1
+  "@tanstack/react-router": ^1.170.41
+  "@tanstack/react-router-devtools": ^1.167.2
+  "@tanstack/react-router-ssr-query": ^1.167.3
+  "@tanstack/react-start": ^1.168.60
+  tsx: ^4.23.15
   vitest: ^4.1.11
   vitest-mock-extended: ^5.1.1
-  rate-limiter-flexible: ^11.2.0
+  rate-limiter-flexible: ^11.2.1
   nodemailer: ^9.1.0
   "@types/nodemailer": ^8.0.1
-  bullmq: ^6.1.2
+  bullmq: ^6.3.11
   ioredis: ^6.0.0
-  tsdown: ^0.22.14
-  sharp: ^0.35.4
+  tsdown: ^0.23.0
+  sharp: ^0.35.5
   blurhash: ^2.0.5
-  "@aws-sdk/client-s3": ^3.1115.0
-  "@aws-sdk/s3-request-presigner": ^3.1115.0
+  "@aws-sdk/client-s3": ^3.1146.0
+  "@aws-sdk/s3-request-presigner": ^3.1146.0
   react-markdown: ^10.1.0
-  i18next: ^26.4.0
-  react-i18next: ^17.0.12
+  i18next: ^26.4.2
+  react-i18next: ^17.0.15
   i18next-browser-languagedetector: ^8.2.1
-  openai: ^7.5.0
-  "@anthropic-ai/sdk": ^0.120.0
+  openai: ^7.28.0
+  "@anthropic-ai/sdk": ^0.131.0
   # Pinned to the exact version resolved transitively via @tanstack/ai-openrouter,
   # now a direct dep of @starter/agent-runtime so it can inject Anthropic prompt-cache
   # breakpoints via the SDK's HTTPClient beforeRequest hook. See adapters.ts.
   "@openrouter/sdk": 0.13.20
-  "heic-to": ^1.5.2
+  "heic-to": ^1.6.5
   "qrcode.react": ^4.2.0
   "@fontsource-variable/roboto": ^5.3.0
-  "@better-auth/expo": 1.7.1
+  "@better-auth/expo": 1.7.7
   "@expo/metro-runtime": ~57.0.12
   "@expo/vector-icons": ^15.1.1
   "@gorhom/bottom-sheet": ^5.2.14
@@ -212,7 +212,7 @@ catalog:
   "expo-secure-store": ~57.0.1
   "expo-status-bar": ~57.0.1
   "expo-web-browser": ~57.0.2
-  "heroui-native": ^1.0.8
+  "heroui-native": ^1.0.10
   "react-native": 0.86.2
   "react-native-gesture-handler": ~2.32.0
   "react-native-keyboard-controller": 1.21.9
@@ -222,6 +222,6 @@ catalog:
   "react-native-svg": 15.15.4
   "react-native-web": ~0.21.2
   "react-native-worklets": 0.10.1
-  "tailwind-merge": ^3.6.0
+  "tailwind-merge": ^3.7.0
   "tailwind-variants": ^3.3.1
-  "uniwind": ^1.11.0
+  "uniwind": ^1.12.2
