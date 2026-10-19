@@ -22,7 +22,7 @@
     "db:studio": "bash ../../scripts/assert-local-database.sh db:studio && prisma studio"
   },
   "dependencies": {
-    "@prisma/adapter-pg": "^7.9.1",
+    "@prisma/adapter-pg": "^7.10.0",
     "@prisma/client": "catalog:",
     "@starter/env": "workspace:*",
     "dotenv": "catalog:",
